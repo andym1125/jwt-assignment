@@ -3,8 +3,8 @@ import * as jose from 'jose'
 import { JSONWebKeySet, KeyLike } from 'jose';
 const app: Application = express();
 
-let publics: JSONWebKeySet = { keys: [] };
-let privates: KeyLike[] = [];
+const publics: JSONWebKeySet = { keys: [] };
+const privates: KeyLike[] = [];
 
 app.get('/', async (req, res) => {
 	console.log(`Request for JWKS\n${publics}\n`)
@@ -16,7 +16,7 @@ app.post('/auth', async (req : Request<{expired?: string}>, res) => {
 	const kid = Date.now().toString()
 	const {publicKey, privateKey} = await jose.generateKeyPair('RS256')
 	if(!req.params.expired) {
-		let jwk = await jose.exportJWK(publicKey)
+		const jwk = await jose.exportJWK(publicKey)
 		jwk.kid = kid
 		publics.keys.push(jwk)
 		privates.push(privateKey)
