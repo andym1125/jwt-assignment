@@ -35,3 +35,5 @@ app.post('/auth', async (req : Request<{expired?: string}>, res) => {
 app.listen(8080, () => {
 	console.log('Server is running on port 8080');
 });
+
+export default app
