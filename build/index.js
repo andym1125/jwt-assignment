@@ -40,15 +40,20 @@ const jose = __importStar(require("jose"));
 const app = (0, express_1.default)();
 const publics = { keys: [] };
 const privates = [];
-app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const methodNotAllowed = (_req, res) => res.status(405).send();
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded());
+app.get('/.well-known/jwks.json', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Request for JWKS\n${publics}\n`);
     res.status(200).send(JSON.stringify(publics));
-}));
+})).all('/.well-known/jwks.json', methodNotAllowed);
 app.post('/auth', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const expiration = 60 * 60 * (req.params.expired ? -1 : 1) + (Date.now() / 1000);
+    const expired = req.query.expired;
+    console.log(`Request for JWT\n${expired}\n`);
+    const expiration = 60 * 60 * (expired ? -1 : 1) + (Date.now() / 1000);
     const kid = Date.now().toString();
     const { publicKey, privateKey } = yield jose.generateKeyPair('RS256');
-    if (!req.params.expired) {
+    if (!expired) {
         const jwk = yield jose.exportJWK(publicKey);
         jwk.kid = kid;
         publics.keys.push(jwk);
@@ -59,9 +64,10 @@ app.post('/auth', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         .setIssuedAt()
         .setExpirationTime(expiration)
         .sign(privateKey);
-    console.log('Issued ' + (req.params.expired ? 'expired' : 'valid') + ' token');
+    console.log('Issued ' + (expired ? 'expired' : 'valid'));
     res.status(200).send(jwt);
-}));
+})).all('/auth', methodNotAllowed);
 app.listen(8080, () => {
     console.log('Server is running on port 8080');
 });
+exports.default = app;
