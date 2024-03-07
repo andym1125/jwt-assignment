@@ -19,4 +19,12 @@ describe("auth", () => {
 		const jwk = jose.decodeJwt(res.text)
 		expect(jwk.exp).toBeLessThan(Date.now() / 1000)
 	})
+
+	it("should return 1 key", async() => {
+		const res = await request(app).get("/.well-known/jwks.json")
+		expect(res.statusCode).toEqual(200)
+		
+		const jwk = JSON.parse(res.text)
+		expect(jwk.keys.length).toEqual(1)
+	})
 })
